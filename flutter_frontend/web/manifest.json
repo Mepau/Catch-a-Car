@@ -1,3 +1,35 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:1756519ad3d7c02caad25897f5b30170ce6afcd53d18d87951e9cf86d5e22fef
-size 928
+{
+    "name": "flutter_frontend",
+    "short_name": "flutter_frontend",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "A new Flutter project.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
