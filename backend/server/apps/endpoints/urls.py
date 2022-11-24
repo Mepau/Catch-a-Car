@@ -1,3 +1,9 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:7473bf8af18207be964d934210106104ed144cf93f9f1c49bf4a0e50025c62bd
-size 131
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("hellodjango", views.hello_django, name="hellodjango"),
+    path("Status", views.get_status, name="get_status"),
+    path("Results", views.get_results, name="get_results"),
+    path("Results/filter", views.get_filtered_results, name="get_filtered_results")
+]

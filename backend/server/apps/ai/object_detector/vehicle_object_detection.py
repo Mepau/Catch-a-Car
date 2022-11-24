@@ -1,5 +1,7 @@
 import argparse
+from datetime import date
 import json
+import math
 
 import os
 # limit the number of cpus used by high performance libraries
@@ -39,12 +41,19 @@ from trackers.multi_tracker_zoo import create_tracker
 # remove duplicated stream handler to avoid duplicated logging
 logging.getLogger().removeHandler(logging.getLogger().handlers[0])
 
+def find(lst, key1, value1, key2, value2):
+    for i, dic in enumerate(lst):
+        if dic[key1] == value1 and dic[key2] == value2:
+            return i
+    return -1
+
+
 class VehicleObjectDetection:
     @torch.no_grad()
     def __init__(self, 
                 yolo_weights=WEIGHTS / 'best.pt',  
                 reid_weights=WEIGHTS / 'osnet_x0_25_msmt17.pt',
-                name='exp',
+                name=date.today().strftime("%d-%m-%Y"),
                 project= ROOT.parents[2].absolute() / 'runs/track',
                 save_txt=True,
                 exist_ok=False,
@@ -58,8 +67,14 @@ class VehicleObjectDetection:
         else:  # multiple models after --yolo_weights
             exp_name = 'ensemble'
         exp_name = name if name else exp_name + "_" + reid_weights.stem
-        self.save_dir = increment_path(Path(project) / exp_name, exist_ok=exist_ok)  # increment run
-        (self.save_dir / 'tracks' if save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)  # make dir
+
+        if(not (Path(project)/exp_name).exists()):
+            self.save_dir = increment_path(Path(project) / exp_name, exist_ok=True, mkdir=True)
+            (self.save_dir / 'tracks' if save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)  # make dir
+            (self.save_dir / "status").mkdir(parents=True, exist_ok=True) 
+        else:
+            self.save_dir = Path(project)/exp_name
+ 
     
         # Load model
         self.device = select_device(device)
@@ -69,6 +84,8 @@ class VehicleObjectDetection:
     @torch.no_grad()
     def predict(
             self,
+            task_id: str,
+            time,
             source="./Pexels Videos 1192116.mp4",
             tracking_method='strongsort',
             reid_weights=WEIGHTS / 'osnet_x0_25_msmt17.pt',
@@ -91,7 +108,6 @@ class VehicleObjectDetection:
         ):  
 
         source = str(source)
-        is_file = Path(source).suffix[1:] in (VID_FORMATS)
         
 
         stride, names, pt = self.model.stride, self.model.names, self.model.pt
@@ -111,10 +127,10 @@ class VehicleObjectDetection:
 
         if int(major_ver)  < 3 :
             fps = video.get(cv2.cv.CV_CAP_PROP_FPS)
-            print("Frames per second using video.get(cv2.cv.CV_CAP_PROP_FPS): {0}".format(fps))
+            length = int(video.get(cv2.cv.CAP_PROP_FRAME_COUNT))
         else :
             fps = video.get(cv2.CAP_PROP_FPS)
-            print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps)) 
+            length = int(video.get(cv2.CAP_PROP_FRAME_COUNT)) 
 
         # Create as many strong sort instances as there are video sources
         tracker_list = []
@@ -166,7 +182,7 @@ class VehicleObjectDetection:
                     save_path = str(self.save_dir / p.parent.name)  # im.jpg, vid.mp4, ...
                 curr_frames[i] = im0
 
-                txt_path = str(self.save_dir / 'tracks' / txt_file_name)  # im.txt
+                txt_path = str(self.save_dir / 'tracks' / task_id)  # im.txt
                 s += '%gx%g ' % im.shape[2:]  # print string
 
                 annotator = Annotator(im0, line_width=line_thickness, pil=not ascii)
@@ -200,12 +216,12 @@ class VehicleObjectDetection:
 
                             if save_txt:
                                 # to MOT format
-                                bbox_left = output[0]
-                                bbox_top = output[1]
-                                bbox_w = output[2] - output[0]
-                                bbox_h = output[3] - output[1]
+                                #bbox_left = output[0]
+                                #bbox_top = output[1]
+                                #bbox_w = output[2] - output[0]
+                                #bbox_h = output[3] - output[1]
                                 c = int(c)
-                                tracking_results.append({id: id, "time_of_capture":  frame_idx/fps, "type_of_vehicle": names[c]})
+                                tracking_results.append({"id": id, "time_of_capture":  frame_idx/fps, "type_of_vehicle": names[c]})
 
                             if save_vid  or show_vid:  # Add bbox to image
                                 c = int(cls)  # integer class
@@ -243,10 +259,41 @@ class VehicleObjectDetection:
                     vid_writer[i].write(im0)
 
                 prev_frames[i] = curr_frames[i]
+
+                if((math.floor((frame_idx/length)*100)) % 25 == 0):
+                    with open(str(self.save_dir) + "/status/" + task_id + ".json", "w") as f:
+                        f.write(json.dumps({"id":task_id, "status": frame_idx/length, "received_time": time}))
                 
-        jsonString = json.dumps(tracking_results)
+        jsonList =  [] 
+        for registry in tracking_results:
+            if not any(dictionary['id'] == registry["id"] and dictionary["type_of_vehicle"] == registry["type_of_vehicle"] for dictionary in jsonList):
+                registry["inital_time_of_capture"] = registry["time_of_capture"]
+                registry["final_time_of_capture"] = 0
+                registry.pop("time_of_capture")
+                jsonList.append(registry)
+            else:
+                idx = find(jsonList, "id", registry["id"], "type_of_vehicle", registry["type_of_vehicle"])
+                if registry["time_of_capture"] > jsonList[idx]["inital_time_of_capture"] and registry["time_of_capture"] > jsonList[idx]["final_time_of_capture"]:
+                    jsonList[idx]["final_time_of_capture"]  = registry["time_of_capture"]
+                elif registry["time_of_capture"] < jsonList[idx]["inital_time_of_capture"]:
+                    jsonList[idx]["inital_time_of_capture"]  = registry["time_of_capture"]
+
+
+        for registry in jsonList:
+            if registry["final_time_of_capture"] == 0:
+                jsonList.remove(registry)
+
         with open(txt_path + '.json', 'w+') as f:
-            f.write(jsonString)
+            f.write(json.dumps(jsonList))
+
+        with open(str(self.save_dir) + "/status/" + task_id + ".json", "w") as f:
+
+            f.write(json.dumps({
+                "id": task_id, 
+                "status": "COMPLETED", 
+                "received_time": time
+                }))
+        
 
         # Print results
         t = tuple(x / seen * 1E3 for x in dt)  # speeds per image

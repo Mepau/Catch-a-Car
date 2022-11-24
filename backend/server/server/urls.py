@@ -1,3 +1,37 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2272f3102f7c38eb68fe12ba934b972c812889c6d3a0cd2102b5013b989a6e53
-size 1487
+"""server URL Configuration
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/4.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.conf.urls import include
+from django.contrib import admin
+from django.urls import path, re_path
+from rest_framework.routers import DefaultRouter
+from apps.endpoints.views import EndpointViewSet, MLAlgorithmViewSet, MLRequestViewSet, PredictView, hello_django # import PredictView
+
+
+
+router = DefaultRouter(trailing_slash=False)
+router.register(r"endpoints", EndpointViewSet, basename="endpoints")
+router.register(r"mlalgorithms", MLAlgorithmViewSet, basename="mlalgorithms")
+router.register(r"mlrequests", MLRequestViewSet, basename="mlrequests")
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    re_path(r"^api/v1/", include(router.urls)),
+    # add predict url
+    re_path(
+        r"^api/v1/(?P<endpoint_name>.+)/predict$", PredictView.as_view(), name="predict"
+    )]
+
+urlpatterns.append(path("api/v1/object_detection/", include("apps.endpoints.urls")))
