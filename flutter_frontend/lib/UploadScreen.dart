@@ -106,12 +106,12 @@ class _UploadScreenState extends State<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        height: MediaQuery.of(context).size.height * 0.30,
-        width: MediaQuery.of(context).size.width,
-        child: SingleChildScrollView(
-            child: Center(
-                child: Column(
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('Sample Code'),
+        ),
+        body: Center(
+            child: Column(
           children: [
             const Padding(padding: EdgeInsets.all(0.0), child: Text("Welcome")),
             Padding(
@@ -131,6 +131,6 @@ class _UploadScreenState extends State<UploadScreen> {
                     onPressed: detectButtonPressed, child: Text("Detect"))),
             StatusTable(statusList: status)
           ],
-        ))));
+        )));
   }
 }

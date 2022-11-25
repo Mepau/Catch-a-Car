@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/ResultScreen.dart';
 import 'UploadScreen.dart';
+import 'package:go_router/go_router.dart';
 
 class Endpoints {
   Endpoints._();
@@ -20,6 +22,21 @@ void main() {
   runApp(const MyApp());
 }
 
+final GoRouter _router = GoRouter(
+  routes: [
+    GoRoute(
+      path: "/",
+      builder: (BuildContext context, GoRouterState state) =>
+          const UploadScreen(),
+    ),
+    GoRoute(
+      path: "/Results/:id",
+      builder: (BuildContext context, GoRouterState state) =>
+          ResultScreen(id: state.params["id"]!),
+    )
+  ],
+);
+
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -30,6 +47,12 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
+    //return MaterialApp.router(
+    //  routeInformationProvider: _router.routeInformationProvider,
+    //  routeInformationParser: _router.routeInformationParser,
+    //  routerDelegate: _router.routerDelegate,
+    //);
+
     return MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(

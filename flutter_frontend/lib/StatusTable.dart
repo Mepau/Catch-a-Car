@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/ResultScreen.dart';
+import 'package:go_router/go_router.dart';
 
 class PathButton extends StatelessWidget {
-  const PathButton({Key? key}) : super(key: key);
+  const PathButton({Key? key, required this.id}) : super(key: key);
+
+  final String id;
 
   @override
   Widget build(BuildContext context) {
@@ -10,7 +14,14 @@ class PathButton extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         textStyle: const TextStyle(fontSize: 20),
       ),
-      onPressed: () {},
+      onPressed: () => {
+        //context.go("/Results/$id")
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ResultScreen(id: id),
+          ),
+        )
+      },
       child: const Text('Gradient'),
     );
   }
@@ -60,7 +71,7 @@ class StatusTable extends StatelessWidget {
               DataCell(Text(statusList[index]["status"].toString())),
               DataCell(Text(DateTime.parse(statusList[index]["received_time"])
                   .toString())),
-              DataCell(PathButton()),
+              DataCell(PathButton(id: statusList[index]["id"])),
             ],
           ),
         ),
