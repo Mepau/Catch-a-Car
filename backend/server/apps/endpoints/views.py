@@ -104,11 +104,11 @@ def get_results(request):
 
 
     file_id = request.GET.get("id", "")
-    with open(STATUS_DIR + file_id + ".json") as f:
+    with open(RESULTS_DIR + file_id + ".json") as f:
         data = json.load(f)
-    
 
-    return Response(data, status = 200)
+
+    return Response(json.dumps(data), status = 200)
 
 @api_view(['GET'],)
 @permission_classes([AllowAny],)
@@ -116,19 +116,35 @@ def get_filtered_results(request):
 
 
     file_id = request.GET.get("id", "")
-    with open(STATUS_DIR + file_id + ".json") as f:
+
+    with open(RESULTS_DIR + file_id + ".json") as f:
         data = json.load(f)
+
     
 
-    return Response(data, status = 200)
+    return Response(json.dumps(data), status = 200)
 
 @api_view(['GET'],)
 @permission_classes([AllowAny],)
 def get_status(request):
 
     file_id = request.GET.get("id", "")
-    with open(STATUS_DIR + file_id + ".json") as f:
-        data = json.load(f)
-
-    return Response(data, status = 200)
+    res_data = []
+    multiple = False
+    if file_id != "":
+        with open(STATUS_DIR + file_id + ".json") as f:
+            res_data = json.load(f)
+    else:
+        multiple = True
+        with os.scandir(STATUS_DIR) as entries:
+            for entry in entries:
+                with open(STATUS_DIR + entry.name, "r") as f:
+                    file_data = json.load(f)
+                    res_data.append(file_data)
+                    
+    if multiple:
+        return Response(json.dumps(res_data), status = 200)
+    else:
+        return Response(res_data, status = 200)
+    
 

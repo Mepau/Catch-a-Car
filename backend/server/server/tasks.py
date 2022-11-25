@@ -22,4 +22,4 @@ def predict_task(self, file, endpoint_name, time):
 
 
     #print(request.FILES["file"].read())
-    prediction = algorithm_object.predict(task_id = self.request.id.__str__() ,source = file, save_vid=False, time= time)
+    prediction = algorithm_object.predict(task_id = self.request.id.__str__() ,source = file, save_vid=False, time= time, tracking_method = "ocsort")
