@@ -124,6 +124,58 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen> {
   List<Classification> results = [];
+  final List<String> colorOptions = ["BLACK", "WHITE", "RED"];
+  final List<String> typeOptions = ["SEDAN", "PICKUP", "SUV"];
+  List<String> selectedColors = [];
+  List<String> selectedTypes = [];
+
+  Future<Map<String, dynamic>> filterButtonPressed() async {
+    Map<String, dynamic> jsonResponse = {};
+    var dio = Dio();
+    String colorOptionString = "colorOptions[]=";
+    String colorOptionStringParam = "";
+    String typeOptionString = "typeOptions[]=";
+    String typeOptionStringParam = "";
+    String taskId = widget.id;
+
+    if (selectedColors.isNotEmpty) {
+      for (int i = 0; i < selectedColors.length; i++) {
+        if (i < selectedColors.length - 1) {
+          colorOptionStringParam =
+              "$colorOptionStringParam$colorOptionString${selectedColors[i]}&";
+        } else {
+          colorOptionStringParam =
+              "$colorOptionStringParam$colorOptionString${selectedColors[i]}";
+        }
+      }
+    }
+    if (selectedTypes.isNotEmpty) {
+      for (int i = 0; i < selectedTypes.length; i++) {
+        if (i < selectedTypes.length - 1) {
+          typeOptionStringParam =
+              "$typeOptionStringParam$typeOptionString${selectedTypes[i]}&";
+        } else {
+          typeOptionStringParam =
+              "$typeOptionStringParam$typeOptionString${selectedTypes[i]}";
+        }
+      }
+    }
+    await dio
+        .get(
+      "http://localhost:8000/api/v1/object_detection/Results/filter?id=$taskId&$colorOptionStringParam&$typeOptionStringParam",
+    )
+        .then((response) {
+      List<Classification> resResults = (json.decode(response.data) as List)
+          .map((i) => Classification.fromJson(i))
+          .toList();
+
+      setState(() {
+        results = resResults;
+      });
+    });
+
+    return jsonResponse;
+  }
 
   @override
   void initState() {
@@ -164,9 +216,25 @@ class _ResultScreenState extends State<ResultScreen> {
         ),
         body: Column(children: [
           Text("Hello"),
-          GenresPicker(
-            callback: (List<dynamic> val) {},
+          OptionsPicker(
+            optionTitle: "Vehicle Colors",
+            options: colorOptions,
+            callback: (List<String> val) {
+              setState(() {
+                selectedColors = val;
+              });
+              print(selectedColors);
+            },
           ),
+          OptionsPicker(
+            optionTitle: "Vehicle Types",
+            options: typeOptions,
+            callback: (List<String> val) {
+              selectedTypes = val;
+              print(selectedColors);
+            },
+          ),
+          ElevatedButton(onPressed: filterButtonPressed, child: Text("Filter")),
           ResultsTable2(
             resultsList: ResultsDataSource(dataList: results),
           )

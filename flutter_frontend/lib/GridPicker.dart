@@ -32,24 +32,34 @@ class GridPicker extends StatelessWidget {
       itemCount: options.length,
       itemBuilder: (BuildContext ctx, index) {
         return Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-              color: selectedOptions.contains(options[index])
-                  ? Colors.blue[200]
-                  : Colors.blue[50],
-              borderRadius: BorderRadius.circular(15)),
-          child: GestureDetector(
-            onTap: () {
-              if (!selectedOptions.contains(options[index])) {
-                addCallback(options[index]);
-              } else {
-                removeCallback(options[index]);
-              }
-              refreshOuterState();
-            },
-            child: Text(options[index].name),
-          ),
-        );
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                color: selectedOptions.contains(options[index])
+                    ? Colors.blue[200]
+                    : Colors.blue[50],
+                borderRadius: BorderRadius.circular(15)),
+            child: SizedBox(
+              width: double.infinity, // <-- match_parent
+              height: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shadowColor: Colors.greenAccent,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32.0)),
+                  minimumSize: Size(100, 40), //////// HERE
+                ),
+                onPressed: () {
+                  if (!selectedOptions.contains(options[index])) {
+                    addCallback(options[index]);
+                  } else {
+                    removeCallback(options[index]);
+                  }
+                  refreshOuterState();
+                },
+                child: Text(options[index]),
+              ),
+            ));
       },
     );
   }
