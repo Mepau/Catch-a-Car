@@ -116,13 +116,35 @@ def get_filtered_results(request):
 
 
     file_id = request.GET.get("id", "")
+    colors = request.GET.getlist("colorOptions[]", [])
+    types = request.GET.getlist("typeOptions[]", [])
+    jsonResponse = []
 
     with open(RESULTS_DIR + file_id + ".json") as f:
-        data = json.load(f)
+       data = json.load(f)
 
-    
+    print(len(types), len(colors))
+    print(colors)
+    if len(types) > 0 and len(colors) > 0:
+        for registry in data:
+            veh_type, veh_color = registry["type_of_vehicle"].split("_")
+            if veh_type in types and veh_color in colors:
+                jsonResponse.append(registry)
+    elif len(types) == 0 and len(colors) > 0:
+        for registry in data:
+            _, veh_color = registry["type_of_vehicle"].split("_")
+            if veh_color in colors:
+                jsonResponse.append(registry)
+    elif len(types) > 0 and len(colors) == 0:
+        for registry in data:
+            veh_type, _ = registry["type_of_vehicle"].split("_")
+            if veh_type in types:
+                jsonResponse.append(registry)
+    else:
+        jsonResponse = data
 
-    return Response(json.dumps(data), status = 200)
+
+    return Response(json.dumps(jsonResponse),status = 200)
 
 @api_view(['GET'],)
 @permission_classes([AllowAny],)
