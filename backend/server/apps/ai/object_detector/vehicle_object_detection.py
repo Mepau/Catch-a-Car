@@ -293,6 +293,7 @@ class VehicleObjectDetection:
                 "status": "COMPLETED", 
                 "received_time": time
                 }))
+        cv2.destroyAllWindows()
         
 
         # Print results

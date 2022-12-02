@@ -104,11 +104,35 @@ def get_results(request):
 
 
     file_id = request.GET.get("id", "")
+    colorPieChartData = {}
+    typePieChartData = {}
+    colorPieChartList = []
+    typePieChartList = []
+    jsonResponse = {}
     with open(RESULTS_DIR + file_id + ".json") as f:
         data = json.load(f)
 
+    for registry in data:
+            veh_type, veh_color = registry["type_of_vehicle"].split("_")
+            if veh_color in colorPieChartData:
+                colorPieChartData[veh_color] += 1
+            else:
+                colorPieChartData[veh_color] = 1
+            if veh_type in typePieChartData:
+                typePieChartData[veh_type] += 1
+            else:
+                typePieChartData[veh_type] = 1
 
-    return Response(json.dumps(data), status = 200)
+    for key in colorPieChartData:
+        colorPieChartList.append({"id": key, "amount": colorPieChartData[key]})
+
+    for key in typePieChartData:
+        typePieChartList.append({"id": key, "amount": typePieChartData[key]})
+
+    print(colorPieChartList, typePieChartList)
+    jsonResponse = {"data": data, "colorPieChart": colorPieChartList, "typePieChart": typePieChartList}
+
+    return Response(json.dumps(jsonResponse), status = 200)
 
 @api_view(['GET'],)
 @permission_classes([AllowAny],)
@@ -119,31 +143,84 @@ def get_filtered_results(request):
     colors = request.GET.getlist("colorOptions[]", [])
     types = request.GET.getlist("typeOptions[]", [])
     jsonResponse = []
+    colorPieChartData = {}
+    typePieChartData = {}
+    colorPieChartList = []
+    typePieChartList = []
 
     with open(RESULTS_DIR + file_id + ".json") as f:
        data = json.load(f)
 
-    print(len(types), len(colors))
-    print(colors)
     if len(types) > 0 and len(colors) > 0:
         for registry in data:
             veh_type, veh_color = registry["type_of_vehicle"].split("_")
             if veh_type in types and veh_color in colors:
                 jsonResponse.append(registry)
+
+                if veh_color in colorPieChartData:
+                    colorPieChartData[veh_color] += 1
+                else:
+                    colorPieChartData[veh_color] = 1
+
+                if veh_type in typePieChartData:
+                    typePieChartData[veh_type] += 1
+                else:
+                    typePieChartData[veh_type] = 1
+
     elif len(types) == 0 and len(colors) > 0:
         for registry in data:
-            _, veh_color = registry["type_of_vehicle"].split("_")
+            veh_type, veh_color = registry["type_of_vehicle"].split("_")
             if veh_color in colors:
                 jsonResponse.append(registry)
+
+                if veh_color in colorPieChartData:
+                    colorPieChartData[veh_color] += 1
+                else:
+                    colorPieChartData[veh_color] = 1
+
+                if veh_type in typePieChartData:
+                    typePieChartData[veh_type] += 1
+                else:
+                    typePieChartData[veh_type] = 1
+
     elif len(types) > 0 and len(colors) == 0:
         for registry in data:
-            veh_type, _ = registry["type_of_vehicle"].split("_")
+            veh_type, veh_color = registry["type_of_vehicle"].split("_")
             if veh_type in types:
                 jsonResponse.append(registry)
+
+                if veh_color in colorPieChartData:
+                    colorPieChartData[veh_color] += 1
+                else:
+                    colorPieChartData[veh_color] = 1
+
+                if veh_type in typePieChartData:
+                    typePieChartData[veh_type] += 1
+                else:
+                    typePieChartData[veh_type] = 1
     else:
+        for registry in data:
+            veh_type, veh_color = registry["type_of_vehicle"].split("_")
+            if veh_type in types:
+                if veh_color in colorPieChartData:
+                    colorPieChartData[veh_color] += 1
+                else:
+                    colorPieChartData[veh_color] = 1
+
+                if veh_type in typePieChartData:
+                    typePieChartData[veh_type] += 1
+                else:
+                    typePieChartData[veh_type] = 1
         jsonResponse = data
+    
+    for key in colorPieChartData:
+        colorPieChartList.append({"id": key, "amount": colorPieChartData[key]})
 
+    for key in typePieChartData:
+        typePieChartList.append({"id": key, "amount": typePieChartData[key]})
 
+    jsonResponse = {"data": jsonResponse, "colorPieChart": colorPieChartList, "typePieChart": typePieChartList}
+    
     return Response(json.dumps(jsonResponse),status = 200)
 
 @api_view(['GET'],)
