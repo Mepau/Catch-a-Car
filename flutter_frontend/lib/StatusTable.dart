@@ -48,7 +48,7 @@ class StatusTable extends StatelessWidget {
             label: Text('Date'),
           ),
           DataColumn(
-            label: Text('WTF'),
+            label: Text('Results'),
           ),
         ],
         rows: List<DataRow>.generate(
@@ -71,7 +71,9 @@ class StatusTable extends StatelessWidget {
               DataCell(Text(statusList[index]["status"].toString())),
               DataCell(Text(DateTime.parse(statusList[index]["received_time"])
                   .toString())),
-              DataCell(PathButton(id: statusList[index]["id"])),
+              DataCell((statusList[index]["status"] == "COMPLETED")
+                  ? PathButton(id: statusList[index]["id"])
+                  : Text("Processing...")),
             ],
           ),
         ),

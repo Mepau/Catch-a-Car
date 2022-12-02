@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
 import 'StatusTable.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class UploadScreen extends StatefulWidget {
   const UploadScreen({Key? key}) : super(key: key);
@@ -14,22 +15,34 @@ class UploadScreen extends StatefulWidget {
 class _UploadScreenState extends State<UploadScreen> {
   String _fileName = "";
   var _fileBytes;
+  var _filePath;
   List<Map<String, dynamic>> status = [];
 
   void _setFile() async {
     var picked = await FilePicker.platform.pickFiles();
 
     if (picked != null) {
-      setState(() {
-        _fileBytes = picked.files.first.bytes;
-        _fileName = picked.files.first.name;
-      });
+      if (kIsWeb) {
+        setState(() {
+          _fileBytes = picked.files.first.bytes;
+          _fileName = picked.files.first.name;
+        });
+      } else {
+        print(picked.files);
+        setState(() {
+          _filePath = picked.files.first.path;
+          _fileName = picked.files.first.name;
+        });
+      }
     }
+
+    print(_filePath);
   }
 
 // This widget is the root of your application.
   Future<String> buttonPressed() async {
     String taskId = status[0]["id"];
+
     String url =
         'http://localhost:8000/api/v1/object_detection/Status?id=$taskId';
     print(url);
@@ -87,19 +100,35 @@ class _UploadScreenState extends State<UploadScreen> {
   Future<Map<String, dynamic>> detectButtonPressed() async {
     Map<String, dynamic> jsonResponse = {};
     var dio = Dio();
-    FormData formData = FormData.fromMap({
-      "file": await MultipartFile.fromBytes(_fileBytes, filename: _fileName),
-    });
-    await dio
-        .post("http://127.0.0.1:8000/api/v1/object_detection/predict",
-            data: formData)
-        .then((response) => jsonResponse = response.data);
+    if (kIsWeb) {
+      FormData formData = FormData.fromMap({
+        "file": await MultipartFile.fromBytes(_fileBytes, filename: _fileName),
+      });
+      await dio
+          .post("http://127.0.0.1:8000/api/v1/object_detection/predict",
+              data: formData)
+          .then((response) => jsonResponse = response.data);
 
-    print(jsonResponse["id"]);
-    print(jsonResponse["status"]);
-    setState(() {
-      status.insert(0, jsonResponse);
-    });
+      print(jsonResponse["id"]);
+      print(jsonResponse["status"]);
+      setState(() {
+        status.insert(0, jsonResponse);
+      });
+    } else {
+      FormData formData = FormData.fromMap({
+        "file": await MultipartFile.fromFile(_filePath, filename: _fileName),
+      });
+      await dio
+          .post("http://127.0.0.1:8000/api/v1/object_detection/predict",
+              data: formData)
+          .then((response) => jsonResponse = response.data);
+
+      print(jsonResponse["id"]);
+      print(jsonResponse["status"]);
+      setState(() {
+        status.insert(0, jsonResponse);
+      });
+    }
 
     return jsonResponse;
   }
@@ -108,10 +137,11 @@ class _UploadScreenState extends State<UploadScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Sample Code'),
+          title: const Text('Catch a Car'),
         ),
-        body: Center(
-            child: Column(
+        body: SingleChildScrollView(
+            child: Center(
+                child: Column(
           children: [
             const Padding(padding: EdgeInsets.all(0.0), child: Text("Welcome")),
             Padding(
@@ -131,6 +161,6 @@ class _UploadScreenState extends State<UploadScreen> {
                     onPressed: detectButtonPressed, child: Text("Detect"))),
             StatusTable(statusList: status)
           ],
-        )));
+        ))));
   }
 }

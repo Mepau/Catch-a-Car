@@ -1,63 +1,12 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/PieChart.dart';
 
-import 'Classification.dart';
+import 'models/Classification.dart';
 import 'OptionPicker.dart';
-
-class ResultsTable extends StatelessWidget {
-  const ResultsTable({Key? key, required this.resultsList}) : super(key: key);
-
-  final List<Classification> resultsList;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: DataTable(
-        columns: const <DataColumn>[
-          DataColumn(
-            label: Text('Type of vehicle'),
-          ),
-          DataColumn(
-            label: Text('Vehicle color'),
-          ),
-          DataColumn(label: Text("Initial Time of Capture")),
-          DataColumn(label: Text("Final Time of Capture")),
-        ],
-        rows: List<DataRow>.generate(
-          resultsList.length,
-          (int index) => DataRow(
-            color: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-              // All rows will have the same selected color.
-              if (states.contains(MaterialState.selected)) {
-                return Theme.of(context).colorScheme.primary.withOpacity(0.08);
-              }
-              // Even rows will have a grey color.
-              if (index.isEven) {
-                return Colors.grey.withOpacity(0.3);
-              }
-              return null; // Use default value for other states and odd rows.
-            }),
-            cells: <DataCell>[
-              DataCell(Text(resultsList[index].type_of_vehicle)),
-              DataCell(Text(resultsList[index].vehicle_color)),
-              DataCell(
-                  Text(resultsList[index].inital_time_of_capture.toString())),
-              DataCell(
-                  Text(resultsList[index].final_time_of_capture.toString())),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+import 'models/CharData.dart';
 
 class ResultsDataSource extends DataTableSource {
   ResultsDataSource({Key? key, required this.dataList});
@@ -82,8 +31,8 @@ class ResultsDataSource extends DataTableSource {
   }
 }
 
-class ResultsTable2 extends StatelessWidget {
-  const ResultsTable2({Key? key, required this.resultsList}) : super(key: key);
+class ResultsTable extends StatelessWidget {
+  const ResultsTable({Key? key, required this.resultsList}) : super(key: key);
 
   final ResultsDataSource resultsList;
 
@@ -123,11 +72,13 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  List<Classification> results = [];
+  List<Classification>? results;
   final List<String> colorOptions = ["BLACK", "WHITE", "RED"];
   final List<String> typeOptions = ["SEDAN", "PICKUP", "SUV"];
   List<String> selectedColors = [];
   List<String> selectedTypes = [];
+  List<ChartData>? colorPieChartData;
+  List<ChartData>? typePieChartData;
 
   Future<Map<String, dynamic>> filterButtonPressed() async {
     Map<String, dynamic> jsonResponse = {};
@@ -165,22 +116,29 @@ class _ResultScreenState extends State<ResultScreen> {
       "http://localhost:8000/api/v1/object_detection/Results/filter?id=$taskId&$colorOptionStringParam&$typeOptionStringParam",
     )
         .then((response) {
-      List<Classification> resResults = (json.decode(response.data) as List)
-          .map((i) => Classification.fromJson(i))
-          .toList();
-
+      List<Classification> resData =
+          (json.decode(response.data)["data"] as List)
+              .map((i) => Classification.fromJson(i))
+              .toList();
+      List<ChartData> resColorPieChartData =
+          (json.decode(response.data)["colorPieChart"] as List)
+              .map((i) => ChartData.fromJson(i))
+              .toList();
+      List<ChartData> resTypePieChartData =
+          (json.decode(response.data)["typePieChart"] as List)
+              .map((i) => ChartData.fromJson(i))
+              .toList();
       setState(() {
-        results = resResults;
+        colorPieChartData = resColorPieChartData;
+        typePieChartData = resTypePieChartData;
+        results = resData;
       });
     });
-
     return jsonResponse;
   }
 
   @override
   void initState() {
-    super.initState();
-
     String taskId = widget.id;
     String url =
         'http://localhost:8000/api/v1/object_detection/Results?id=$taskId';
@@ -193,51 +151,76 @@ class _ResultScreenState extends State<ResultScreen> {
         .then((response) {
       //var res = jsonDecode(response.data);
 
-      List<Classification> resResults = (json.decode(response.data) as List)
-          .map((i) => Classification.fromJson(i))
-          .toList();
       //List<Map<String, dynamic>> resResults = jsonDecode(response.data);
-
+      List<Classification> resData =
+          (json.decode(response.data)["data"] as List)
+              .map((i) => Classification.fromJson(i))
+              .toList();
+      List<ChartData> resColorPieChartData =
+          (json.decode(response.data)["colorPieChart"] as List)
+              .map((i) => ChartData.fromJson(i))
+              .toList();
+      List<ChartData> resTypePieChartData =
+          (json.decode(response.data)["typePieChart"] as List)
+              .map((i) => ChartData.fromJson(i))
+              .toList();
       setState(() {
-        results = resResults;
+        results = resData;
+        colorPieChartData = resColorPieChartData;
+        typePieChartData = resTypePieChartData;
       });
+      results = resData;
+      colorPieChartData = resColorPieChartData;
+      //colorPieChartData = resColorPieChartData;
+
+      //print(colorPieChartData[0]);
+      //print(colorPieChartData[0].id);
 
       //List< dynamic > itemsList= List< dynamic >.from(parsedListJson.map((i) => Item.fromJson(i)));
     });
 
     //print(returnedResult.body);
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Sample Code'),
+          title: const Text('Catch a Car'),
         ),
-        body: Column(children: [
-          Text("Hello"),
-          OptionsPicker(
-            optionTitle: "Vehicle Colors",
-            options: colorOptions,
-            callback: (List<String> val) {
-              setState(() {
-                selectedColors = val;
-              });
-              print(selectedColors);
-            },
-          ),
-          OptionsPicker(
-            optionTitle: "Vehicle Types",
-            options: typeOptions,
-            callback: (List<String> val) {
-              selectedTypes = val;
-              print(selectedColors);
-            },
-          ),
-          ElevatedButton(onPressed: filterButtonPressed, child: Text("Filter")),
-          ResultsTable2(
-            resultsList: ResultsDataSource(dataList: results),
-          )
-        ]));
+        body: SingleChildScrollView(
+            child: (colorPieChartData != null &&
+                    results != null &&
+                    typePieChartData != null)
+                ? Column(children: [
+                    Text("Hello"),
+                    OptionsPicker(
+                      optionTitle: "Vehicle Colors",
+                      options: colorOptions,
+                      callback: (List<String> val) {
+                        setState(() {
+                          selectedColors = val;
+                        });
+                        print(selectedColors);
+                      },
+                    ),
+                    OptionsPicker(
+                      optionTitle: "Vehicle Types",
+                      options: typeOptions,
+                      callback: (List<String> val) {
+                        selectedTypes = val;
+                        print(selectedColors);
+                      },
+                    ),
+                    ElevatedButton(
+                        onPressed: filterButtonPressed, child: Text("Filter")),
+                    ResultsTable(
+                      resultsList: ResultsDataSource(dataList: results!),
+                    ),
+                    PieChart2(data: colorPieChartData!),
+                    PieChart2(data: typePieChartData!)
+                  ])
+                : Center(child: CircularProgressIndicator())));
   }
 }
