@@ -42,7 +42,8 @@ class ResultsTable extends StatelessWidget {
       width: double.infinity,
       child: PaginatedDataTable(
         source: resultsList,
-        header: const Text('My Products'),
+        columnSpacing: (MediaQuery.of(context).size.width / 20) * 0.5,
+        header: const Text('Video results'),
         columns: const [
           DataColumn(
             label: Text('Type of vehicle'),
@@ -53,7 +54,7 @@ class ResultsTable extends StatelessWidget {
           DataColumn(label: Text("Initial Time of Capture")),
           DataColumn(label: Text("Final Time of Capture")),
         ],
-        columnSpacing: 100,
+        //columnSpacing: 100,
         horizontalMargin: 10,
         rowsPerPage: 8,
         showCheckboxColumn: false,

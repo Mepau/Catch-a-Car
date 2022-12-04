@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
@@ -135,32 +136,41 @@ class _UploadScreenState extends State<UploadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isScreenWide = MediaQuery.of(context).size.width >= 415;
     return Scaffold(
         appBar: AppBar(
           title: const Text('Catch a Car'),
         ),
-        body: SingleChildScrollView(
-            child: Center(
-                child: Column(
+        body: Center(
+            child: Flex(
+          mainAxisAlignment:
+              MainAxisAlignment.center, //Center Row contents horizontally,
+          crossAxisAlignment:
+              CrossAxisAlignment.center, //Center Row contents vertically
+          direction: isScreenWide ? Axis.horizontal : Axis.vertical,
           children: [
-            const Padding(padding: EdgeInsets.all(0.0), child: Text("Welcome")),
-            Padding(
-                padding: const EdgeInsets.all(0.0),
-                child: ElevatedButton(
-                    onPressed: buttonPressed, child: Text("Click"))),
-            Padding(
-                padding: const EdgeInsets.all(0),
-                child: TextButton(
-                  child: Text('UPLOAD FILE'),
-                  onPressed: _setFile,
-                )),
-            Text(_fileName),
-            Padding(
-                padding: const EdgeInsets.all(0.0),
-                child: ElevatedButton(
-                    onPressed: detectButtonPressed, child: Text("Detect"))),
-            StatusTable(statusList: status)
+            Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.all(0),
+                      child: TextButton(
+                        child: Text('UPLOAD FILE'),
+                        onPressed: _setFile,
+                      )),
+                  Text(_fileName),
+                  Padding(
+                      padding: const EdgeInsets.all(0.0),
+                      child: ElevatedButton(
+                          onPressed: detectButtonPressed,
+                          child: Text("Detect"))),
+                ]),
+            Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [StatusTable(statusList: status)]),
           ],
-        ))));
+        )));
   }
 }
