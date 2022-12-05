@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/PieChart.dart';
+import 'package:flutter_frontend/widgets/PieChart.dart';
 
 import 'models/Classification.dart';
-import 'OptionPicker.dart';
+import 'widgets/OptionPicker.dart';
 import 'models/CharData.dart';
 
 class ResultsDataSource extends DataTableSource {
@@ -38,27 +38,24 @@ class ResultsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: PaginatedDataTable(
-        source: resultsList,
-        columnSpacing: (MediaQuery.of(context).size.width / 20) * 0.5,
-        header: const Text('Video results'),
-        columns: const [
-          DataColumn(
-            label: Text('Type of vehicle'),
-          ),
-          DataColumn(
-            label: Text('Vehicle color'),
-          ),
-          DataColumn(label: Text("Initial Time of Capture")),
-          DataColumn(label: Text("Final Time of Capture")),
-        ],
-        //columnSpacing: 100,
-        horizontalMargin: 10,
-        rowsPerPage: 8,
-        showCheckboxColumn: false,
-      ),
+    return PaginatedDataTable(
+      source: resultsList,
+      columnSpacing: (MediaQuery.of(context).size.width / 20) * 0.5,
+      header: const Text('Video results'),
+      columns: const [
+        DataColumn(
+          label: Text('Type of vehicle'),
+        ),
+        DataColumn(
+          label: Text('Vehicle color'),
+        ),
+        DataColumn(label: Text("Initial Time of Capture")),
+        DataColumn(label: Text("Final Time of Capture")),
+      ],
+      //columnSpacing: 100,
+      horizontalMargin: 10,
+      rowsPerPage: 8,
+      showCheckboxColumn: false,
     );
   }
 }
@@ -186,6 +183,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isScreenWide = MediaQuery.of(context).size.width >= 415;
     return Scaffold(
         appBar: AppBar(
           title: const Text('Catch a Car'),
@@ -195,7 +193,6 @@ class _ResultScreenState extends State<ResultScreen> {
                     results != null &&
                     typePieChartData != null)
                 ? Column(children: [
-                    Text("Hello"),
                     OptionsPicker(
                       optionTitle: "Vehicle Colors",
                       options: colorOptions,
@@ -203,7 +200,6 @@ class _ResultScreenState extends State<ResultScreen> {
                         setState(() {
                           selectedColors = val;
                         });
-                        print(selectedColors);
                       },
                     ),
                     OptionsPicker(
@@ -211,13 +207,15 @@ class _ResultScreenState extends State<ResultScreen> {
                       options: typeOptions,
                       callback: (List<String> val) {
                         selectedTypes = val;
-                        print(selectedColors);
                       },
                     ),
                     ElevatedButton(
                         onPressed: filterButtonPressed, child: Text("Filter")),
-                    ResultsTable(
-                      resultsList: ResultsDataSource(dataList: results!),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ResultsTable(
+                        resultsList: ResultsDataSource(dataList: results!),
+                      ),
                     ),
                     PieChart2(data: colorPieChartData!),
                     PieChart2(data: typePieChartData!)

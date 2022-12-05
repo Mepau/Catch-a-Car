@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
-import 'StatusTable.dart';
+import 'widgets/StatusTable.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class UploadScreen extends StatefulWidget {
@@ -141,7 +141,7 @@ class _UploadScreenState extends State<UploadScreen> {
         appBar: AppBar(
           title: const Text('Catch a Car'),
         ),
-        body: Center(
+        body: SingleChildScrollView(
             child: Flex(
           mainAxisAlignment:
               MainAxisAlignment.center, //Center Row contents horizontally,
@@ -149,23 +149,26 @@ class _UploadScreenState extends State<UploadScreen> {
               CrossAxisAlignment.center, //Center Row contents vertically
           direction: isScreenWide ? Axis.horizontal : Axis.vertical,
           children: [
-            Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                      padding: const EdgeInsets.all(0),
-                      child: TextButton(
-                        child: Text('UPLOAD FILE'),
-                        onPressed: _setFile,
-                      )),
-                  Text(_fileName),
-                  Padding(
-                      padding: const EdgeInsets.all(0.0),
-                      child: ElevatedButton(
-                          onPressed: detectButtonPressed,
-                          child: Text("Detect"))),
-                ]),
+            Padding(
+              padding: const EdgeInsets.all(100.0),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.all(0),
+                        child: TextButton(
+                          child: Text('UPLOAD FILE'),
+                          onPressed: _setFile,
+                        )),
+                    Text(_fileName),
+                    Padding(
+                        padding: const EdgeInsets.all(0.0),
+                        child: ElevatedButton(
+                            onPressed: detectButtonPressed,
+                            child: Text("Detect"))),
+                  ]),
+            ),
             Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,

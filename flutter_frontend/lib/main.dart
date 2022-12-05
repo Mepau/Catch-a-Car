@@ -18,6 +18,42 @@ class Endpoints {
   static const String users = '/users';
 }
 
+class AppThemeValues {
+  final ThemeData themeData;
+
+  AppThemeValues({required this.themeData});
+}
+
+AppThemeValues ligthTheme = AppThemeValues(themeData: ThemeData());
+
+AppThemeValues darkTheme = AppThemeValues(
+    themeData: ThemeData(
+// UI
+  brightness: Brightness.dark,
+  primaryColor: Colors.lightBlue[800],
+  accentColor: Colors.cyan[600],
+// font
+  fontFamily: 'Georgia',
+//text style
+  textTheme: const TextTheme(
+    headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+    headline6: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+    bodyText2: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+  ),
+  buttonTheme: const ButtonThemeData(
+    buttonColor: Colors.redAccent,
+    shape: RoundedRectangleBorder(),
+    textTheme: ButtonTextTheme.accent,
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+      style: TextButton.styleFrom(
+          backgroundColor: Colors.deepOrangeAccent,
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          textStyle: TextStyle(color: Colors.white, fontSize: 20))),
+));
+
 void main() {
   runApp(const MyApp());
 }
@@ -79,7 +115,7 @@ class _MyAppState extends State<MyApp> {
                   padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
-                  textStyle: TextStyle(color: Colors.white, fontSize: 20))),
+                  textStyle: TextStyle(color: Colors.white, fontSize: 15))),
         ),
         home: const UploadScreen());
   }
