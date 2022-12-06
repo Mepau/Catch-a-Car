@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/widgets/PieChart.dart';
+import 'package:flutter_frontend/widgets/TimeSeriesChart.dart';
 
 import 'models/Classification.dart';
 import 'widgets/OptionPicker.dart';
@@ -77,6 +78,7 @@ class _ResultScreenState extends State<ResultScreen> {
   List<String> selectedTypes = [];
   List<ChartData>? colorPieChartData;
   List<ChartData>? typePieChartData;
+  List<ChartData>? timeChartData;
 
   Future<Map<String, dynamic>> filterButtonPressed() async {
     Map<String, dynamic> jsonResponse = {};
@@ -126,10 +128,15 @@ class _ResultScreenState extends State<ResultScreen> {
           (json.decode(response.data)["typePieChart"] as List)
               .map((i) => ChartData.fromJson(i))
               .toList();
+      List<ChartData> resTimeChartData =
+          (json.decode(response.data)["timeChart"] as List)
+              .map((i) => ChartData.fromJson(i))
+              .toList();
       setState(() {
         colorPieChartData = resColorPieChartData;
         typePieChartData = resTypePieChartData;
         results = resData;
+        timeChartData = resTimeChartData;
       });
     });
     return jsonResponse;
@@ -162,13 +169,17 @@ class _ResultScreenState extends State<ResultScreen> {
           (json.decode(response.data)["typePieChart"] as List)
               .map((i) => ChartData.fromJson(i))
               .toList();
+      List<ChartData> resTimeChartData =
+          (json.decode(response.data)["timeChart"] as List)
+              .map((i) => ChartData.fromJson(i))
+              .toList();
       setState(() {
         results = resData;
         colorPieChartData = resColorPieChartData;
         typePieChartData = resTypePieChartData;
+        timeChartData = resTimeChartData;
       });
-      results = resData;
-      colorPieChartData = resColorPieChartData;
+      print(resTimeChartData);
       //colorPieChartData = resColorPieChartData;
 
       //print(colorPieChartData[0]);
@@ -191,7 +202,8 @@ class _ResultScreenState extends State<ResultScreen> {
         body: SingleChildScrollView(
             child: (colorPieChartData != null &&
                     results != null &&
-                    typePieChartData != null)
+                    typePieChartData != null &&
+                    timeChartData != null)
                 ? Column(children: [
                     OptionsPicker(
                       optionTitle: "Vehicle Colors",
@@ -218,7 +230,8 @@ class _ResultScreenState extends State<ResultScreen> {
                       ),
                     ),
                     PieChart2(data: colorPieChartData!),
-                    PieChart2(data: typePieChartData!)
+                    PieChart2(data: typePieChartData!),
+                    TimeSeriesChart(data: timeChartData!)
                   ])
                 : Center(child: CircularProgressIndicator())));
   }
