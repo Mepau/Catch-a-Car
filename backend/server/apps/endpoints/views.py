@@ -184,11 +184,13 @@ def get_filtered_results(request):
        data = json.load(f)
 
     if len(types) > 0 and len(colors) > 0:
+        print("WTF")
+        print(colors, types)
         for registry in data:
             veh_type, veh_color = registry["type_of_vehicle"].split("_")
+            
             if veh_type in types and veh_color in colors:
                 jsonResponse.append(registry)
-
                 if veh_color in colorPieChartData:
                     colorPieChartData[veh_color] += 1
                 else:
@@ -203,8 +205,10 @@ def get_filtered_results(request):
                         vehicleTimeChartData[i] += 1
                     else:
                         vehicleTimeChartData[i] = 1
+        print(jsonResponse)
 
     elif len(types) == 0 and len(colors) > 0:
+        print("WTF2")
         for registry in data:
             veh_type, veh_color = registry["type_of_vehicle"].split("_")
             if veh_color in colors:
@@ -225,8 +229,8 @@ def get_filtered_results(request):
                         vehicleTimeChartData[i] += 1
                     else:
                         vehicleTimeChartData[i] = 1
-
     elif len(types) > 0 and len(colors) == 0:
+        print("WTF3")
         for registry in data:
             veh_type, veh_color = registry["type_of_vehicle"].split("_")
             if veh_type in types:
@@ -248,7 +252,9 @@ def get_filtered_results(request):
                     else:
                         vehicleTimeChartData[i] = 1
     else:
+        print("WTF4")
         for registry in data:
+            jsonResponse.append(registry)
             veh_type, veh_color = registry["type_of_vehicle"].split("_")
             if veh_color in colorPieChartData:
                 colorPieChartData[veh_color] += 1
@@ -258,14 +264,14 @@ def get_filtered_results(request):
                 typePieChartData[veh_type] += 1
             else:
                 typePieChartData[veh_type] = 1
+                
             for i in np.arange(round(registry["inital_time_of_capture"], 1), round(registry["final_time_of_capture"], 1), timeInterval):
                 if i in vehicleTimeChartData:
                     vehicleTimeChartData[i] += 1
                 else:
                     vehicleTimeChartData[i] = 1
-
-        jsonResponse = data
     
+    print(jsonResponse)
     for key in colorPieChartData:
         colorPieChartList.append({"id": key, "amount": colorPieChartData[key]})
 
@@ -287,10 +293,10 @@ def get_filtered_results(request):
     for key in vehicleTimeChartData2:
        vehicleTimeChartList.append({"id": str(key), "amount": vehicleTimeChartData2[key]})
     
-
-    jsonResponse = {"data": jsonResponse, "colorPieChart": colorPieChartList, "typePieChart": typePieChartList, "timeChart": vehicleTimeChartList}
+    print(jsonResponse)
+    jsonResponse2 = {"data": jsonResponse, "colorPieChart": colorPieChartList, "typePieChart": typePieChartList, "timeChart": vehicleTimeChartList}
     
-    return Response(json.dumps(jsonResponse),status = 200)
+    return Response(json.dumps(jsonResponse2),status = 200)
 
 @api_view(['GET'],)
 @permission_classes([AllowAny],)
